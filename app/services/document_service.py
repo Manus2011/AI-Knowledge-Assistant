@@ -62,6 +62,12 @@ class DocumentService:
         self._save_registry()
         return doc
 
+    def update_document(self, doc: Document):
+        """Persist changes made to a document after it was first saved
+        (e.g. setting extracted_text or category post-upload)."""
+        self._documents[doc.id] = doc
+        self._save_registry()
+
     def list_documents(self) -> list[Document]:
         return list(self._documents.values())
 

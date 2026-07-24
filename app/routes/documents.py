@@ -3,6 +3,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 from app.services.document_service import document_service
 from app.services.parser_service import parse_document, ParsingError
 from app.services.stats_service import get_document_stats
+from app.services.categorization_service import categorization_service
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
@@ -24,6 +25,8 @@ async def upload_document(file: UploadFile = File(...)):
     try:
         text = parse_document(doc.file_path)
         doc.extracted_text = text
+        doc.category = categorization_service.categorize(text)
+        document_service.update_document(doc)
     except ParsingError as e:
         # still keep the upload, just flag that parsing failed
         return {
