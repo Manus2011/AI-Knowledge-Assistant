@@ -15,6 +15,7 @@ class Document:
     uploaded_at: datetime = field(default_factory=datetime.utcnow)
     extracted_text: str | None = None
     category: str | None = None
+    keywords: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return {
@@ -24,5 +25,6 @@ class Document:
             "size_bytes": self.size_bytes,
             "uploaded_at": self.uploaded_at.isoformat(),
             "category": self.category,
+            "keywords": self.keywords,
             "has_extracted_text": self.extracted_text is not None,
         }
