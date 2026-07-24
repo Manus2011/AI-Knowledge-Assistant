@@ -1,17 +1,10 @@
-"""
-Week 2 capstone enhancement: document categorization.
-
-Trains a small text classifier on startup that sorts uploaded documents
-into categories (resume, meeting_notes, report, contract, other). Same
-core idea as the spam classifier exercise, just applied to a real feature
-in the app now instead of a standalone script.
-"""
+# sorts uploaded docs into a category using tf-idf + logistic regression,
+# same idea as the spam classifier exercise just applied for real here
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 
-# small labeled training set, enough to get reasonable behavior for
-# common document types. would grow this with real examples over time
+# small training set, would add more real examples over time
 TRAINING_DATA = [
     ("Experienced software engineer with 5 years in Python and backend development.", "resume"),
     ("Objective: seeking a data analyst role. Skills include SQL and Excel.", "resume"),
@@ -46,9 +39,7 @@ class CategorizationService:
         X = self.vectorizer.transform([text])
         prediction = self.model.predict(X)[0]
 
-        # if the model isn't confident in any class, fall back to "other"
-        # rather than force a guess on something that doesn't look like
-        # any of the trained categories
+        # don't force a guess if the model isn't actually confident
         probabilities = self.model.predict_proba(X)[0]
         if max(probabilities) < 0.35:
             return "other"

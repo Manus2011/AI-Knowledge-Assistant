@@ -3,11 +3,7 @@ from app.services.document_service import document_service
 
 
 def get_document_stats() -> dict:
-    """Turn the document registry into a DataFrame and pull basic stats out of it.
-
-    This is the Day 5 pandas piece, nothing fancy, just showing how raw
-    document metadata becomes something you can actually analyze.
-    """
+    # pandas practice from day 5, pulling basic stats off the registry
     docs = document_service.list_documents()
 
     if not docs:

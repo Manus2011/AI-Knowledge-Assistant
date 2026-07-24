@@ -1,14 +1,6 @@
-"""
-Week 2 - Day 2: Customer prediction model
-
-Predicts whether a customer will make a purchase based on a few basic
-features (time on site, pages viewed, past purchases). Uses Logistic
-Regression since this is a binary classification problem (will buy / won't buy).
-
-Data is synthetic, generated with some intentional pattern (more time on
-site + more past purchases = more likely to buy) so the model actually
-has something real to learn from.
-"""
+# day 2 - predicting if a customer will purchase based on
+# time on site, pages viewed, past purchases. logistic regression
+# since it's just yes/no. data is synthetic w a built in pattern
 
 import numpy as np
 import pandas as pd

@@ -7,12 +7,8 @@ REGISTRY_PATH = os.path.join(DATA_DIR, "registry.json")
 
 
 class DocumentService:
-    """Handles saving uploaded files to disk and keeping track of them.
-
-    For now this uses a JSON file as a lightweight registry instead of a
-    real database. Good enough for weeks 1-3, will likely get swapped for
-    a proper DB once auth/persistence gets covered later in the program.
-    """
+    # using a json file as a registry for now instead of a real db,
+    # good enough until we get to the db/auth stuff later on
 
     def __init__(self):
         os.makedirs(DATA_DIR, exist_ok=True)
@@ -63,8 +59,7 @@ class DocumentService:
         return doc
 
     def update_document(self, doc: Document):
-        """Persist changes made to a document after it was first saved
-        (e.g. setting extracted_text or category post-upload)."""
+        # saves changes made after the initial upload (category, keywords, etc)
         self._documents[doc.id] = doc
         self._save_registry()
 

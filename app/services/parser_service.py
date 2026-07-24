@@ -8,11 +8,7 @@ class ParsingError(Exception):
 
 
 def parse_document(file_path: str) -> str:
-    """Extract raw text from a document. Supports .txt and .pdf for now.
-
-    Word docs and other formats can get added later, most of what we
-    need for the RAG pipeline is just readable text out of this.
-    """
+    # only handling txt/pdf for now, can add docx later if needed
     ext = os.path.splitext(file_path)[1].lower()
 
     try:
@@ -37,5 +33,5 @@ def parse_document(file_path: str) -> str:
     except UnicodeDecodeError:
         raise ParsingError(f"Could not decode {file_path}, file may be corrupted or wrong encoding")
     except Exception as e:
-        # catch-all so a single bad file can't crash the whole upload flow
+        # catch anything else so one bad file doesn't kill the whole upload
         raise ParsingError(f"Failed to parse {file_path}: {str(e)}")

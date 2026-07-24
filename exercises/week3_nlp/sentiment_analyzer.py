@@ -1,18 +1,7 @@
-"""
-Week 3 - Day 2: Sentiment analyzer
-
-Classifies short text as positive or negative. Same TF-IDF + Naive Bayes
-combo as the other exercises this week, the real point here is seeing
-that the exact same pipeline (clean -> vectorize -> classify) works
-across pretty different NLP tasks, spam, resumes, and now sentiment.
-
-Note: the first version of this training set was too small and caused
-misclassifications, e.g. "support" only showed up once, in a negative
-example, so any test sentence mentioning support got dragged negative
-regardless of context. Expanded the training data to fix it. Good
-reminder that small/unbalanced vocabulary is usually the real problem,
-not the model itself.
-"""
+# day 2 - positive/negative sentiment, same tfidf + naive bayes setup
+# had to expand the training data after the first version kept
+# guessing negative for anything mentioning "support", not enough
+# examples in the training set to actually learn that word properly
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB

@@ -1,13 +1,5 @@
-"""
-Week 2 - Day 1: Spam classifier
-
-Small exercise to practice classification + probability concepts.
-Uses Naive Bayes, which is a natural fit since spam detection is basically
-the textbook use case for it (that's why it's the example in most ML courses).
-
-Dataset here is small and made up just to keep this self-contained, in
-a real setting you'd use something like the SMS Spam Collection dataset.
-"""
+# day 1 - spam classifier using naive bayes
+# dataset is small/made up just to keep this self contained
 
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
@@ -40,8 +32,7 @@ def run():
         messages, labels, test_size=0.25, random_state=42
     )
 
-    # CountVectorizer turns text into word-count vectors, Naive Bayes
-    # then works off the probability of each word showing up per class
+    # turn text into word count vectors
     vectorizer = CountVectorizer()
     X_train_vec = vectorizer.fit_transform(X_train)
     X_test_vec = vectorizer.transform(X_test)

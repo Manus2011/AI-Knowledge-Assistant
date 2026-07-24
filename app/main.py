@@ -13,7 +13,6 @@ app.include_router(documents.router)
 
 @app.get("/")
 def read_root():
-    """Health check endpoint - confirms the API is alive."""
     return {"status": "ok", "message": "AI Knowledge Assistant API running"}
 
 

@@ -1,11 +1,5 @@
-"""
-Week 3 - Day 1: Resume classifier
-
-Classifies a resume snippet into a job field (engineering, marketing,
-finance). Builds on the same TF-IDF + classifier pattern from Week 2,
-just applied to a proper NLP preprocessing pipeline this time: cleaning
-text before vectorizing it instead of feeding raw text straight in.
-"""
+# day 1 - classifying resume snippets into a job field
+# adds a text cleaning step before vectorizing this time
 
 import re
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -35,12 +29,7 @@ TRAINING_DATA = [
 
 
 def clean_text(text: str) -> str:
-    """Lowercase, strip punctuation and extra whitespace.
-
-    This is the "text cleaning" step from this week's topics, doing it
-    before vectorizing keeps the model from treating 'API' and 'api.' as
-    two different tokens.
-    """
+    # lowercase + strip punctuation so "API" and "api." don't count as different words
     text = text.lower()
     text = re.sub(r"[^a-z0-9\s]", " ", text)
     text = re.sub(r"\s+", " ", text).strip()
