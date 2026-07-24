@@ -1,18 +1,10 @@
-"""
-Week 3 capstone enhancement: keyword extraction.
-
-Runs the same TF-IDF idea from the keyword_extractor exercise, but wired
-into the real app now. Every uploaded document gets a set of keywords
-attached, which is a small step toward "document understanding", it's
-the first hint of the semantic search work coming in Week 6.
-"""
+# pulls keywords out of a doc using tf-idf, same as the exercise
+# but wired into the actual upload flow now
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-# generic reference texts so TF-IDF has something to compare against when
-# there aren't many real documents uploaded yet. once there are enough
-# real documents in the system, those should be used as the comparison
-# corpus instead, since that gives more meaningful scores
+# reference texts to compare against when we don't have enough real
+# docs uploaded yet for a meaningful tf-idf comparison
 FALLBACK_CORPUS = [
     "Machine learning models learn patterns from data to make predictions.",
     "Cloud computing lets companies rent servers instead of owning hardware.",

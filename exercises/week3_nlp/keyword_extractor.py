@@ -1,11 +1,5 @@
-"""
-Week 3 - Day 3: Keyword extractor
-
-Pulls out the most important words/phrases from a document using TF-IDF
-scores. This is the piece that directly feeds into this week's capstone
-enhancement (improving document understanding), so worth understanding
-well before wiring it into the app.
-"""
+# day 3 - pulling keywords out of a document using tf-idf
+# feeds into the categorization/keyword feature in the actual app
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 
@@ -27,9 +21,7 @@ OTHER_DOCS_FOR_CONTEXT = [
 
 
 def extract_keywords(text: str, top_n: int = 8) -> list[str]:
-    # TF-IDF needs more than one document to be meaningful (it compares
-    # term frequency in this doc against frequency across all docs), so
-    # we score the target document against a few unrelated ones
+    # tfidf needs more than one doc to compare against, so pad with a few unrelated ones
     corpus = OTHER_DOCS_FOR_CONTEXT + [text]
 
     vectorizer = TfidfVectorizer(stop_words="english")

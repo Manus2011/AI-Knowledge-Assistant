@@ -1,14 +1,8 @@
-"""
-Week 2 - Day 2/3: Data visualization
-
-Quick look at the customer prediction dataset, comparing feature
-distributions between people who purchased vs didn't. Bar charts +
-histograms, nothing fancy, just enough to actually see the patterns
-instead of only looking at raw numbers.
-"""
+# quick histograms comparing feature distributions for
+# purchased vs not purchased
 
 import matplotlib
-matplotlib.use("Agg")  # no display available, just save to file
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from customer_prediction import generate_data

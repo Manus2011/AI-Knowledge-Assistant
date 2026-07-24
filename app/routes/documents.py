@@ -22,14 +22,13 @@ async def upload_document(file: UploadFile = File(...)):
         contents=contents,
     )
 
-    # try to parse it right away so we know if it's readable
+    # parse right away so we know if the file is even readable
     try:
         text = parse_document(doc.file_path)
         doc.extracted_text = text
         doc.category = categorization_service.categorize(text)
 
-        # use other uploaded docs as context if there are enough of them,
-        # otherwise fall back to the generic reference corpus
+        # use other uploaded docs for comparison once there's enough of them
         other_docs = [
             d.extracted_text for d in document_service.list_documents()
             if d.id != doc.id and d.extracted_text
@@ -39,7 +38,7 @@ async def upload_document(file: UploadFile = File(...)):
 
         document_service.update_document(doc)
     except ParsingError as e:
-        # still keep the upload, just flag that parsing failed
+        # keep the upload but flag the parse failure
         return {
             "document": doc.to_dict(),
             "warning": f"File uploaded but couldn't be parsed: {str(e)}",

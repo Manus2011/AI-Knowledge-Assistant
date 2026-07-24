@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class Document:
-    """Represents a single uploaded document and its metadata."""
+    # metadata for one uploaded file
 
     filename: str
     content_type: str
