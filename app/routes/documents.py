@@ -4,6 +4,7 @@ from app.services.document_service import document_service
 from app.services.parser_service import parse_document, ParsingError
 from app.services.stats_service import get_document_stats
 from app.services.categorization_service import categorization_service
+from app.services.keyword_service import extract_keywords
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
@@ -26,6 +27,16 @@ async def upload_document(file: UploadFile = File(...)):
         text = parse_document(doc.file_path)
         doc.extracted_text = text
         doc.category = categorization_service.categorize(text)
+
+        # use other uploaded docs as context if there are enough of them,
+        # otherwise fall back to the generic reference corpus
+        other_docs = [
+            d.extracted_text for d in document_service.list_documents()
+            if d.id != doc.id and d.extracted_text
+        ]
+        comparison_corpus = other_docs if len(other_docs) >= 3 else None
+        doc.keywords = extract_keywords(text, comparison_corpus=comparison_corpus)
+
         document_service.update_document(doc)
     except ParsingError as e:
         # still keep the upload, just flag that parsing failed
