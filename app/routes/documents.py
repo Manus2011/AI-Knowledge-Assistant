@@ -1,5 +1,6 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 
+from app.core.deps import current_user
 from app.services.document_service import document_service
 from app.services.parser_service import parse_document, ParsingError
 from app.services.stats_service import get_document_stats
@@ -10,8 +11,16 @@ from app.services import vector_store
 router = APIRouter(prefix="/documents", tags=["documents"])
 
 
+def _owned(doc_id: str, user: str):
+    # other people's documents look like they don't exist
+    doc = document_service.get_document(doc_id)
+    if doc is None or doc.owner != user:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return doc
+
+
 @router.post("/upload")
-async def upload_document(file: UploadFile = File(...)):
+async def upload_document(file: UploadFile = File(...), user: str = Depends(current_user)):
     contents = await file.read()
 
     if len(contents) == 0:
@@ -21,6 +30,7 @@ async def upload_document(file: UploadFile = File(...)):
         filename=file.filename,
         content_type=file.content_type,
         contents=contents,
+        owner=user,
     )
 
     # parse right away so we know if the file is even readable
@@ -29,9 +39,9 @@ async def upload_document(file: UploadFile = File(...)):
         doc.extracted_text = text
         doc.category = categorization_service.categorize(text)
 
-        # use other uploaded docs for comparison once there's enough of them
+        # use the user's other docs for comparison once there's enough of them
         other_docs = [
-            d.extracted_text for d in document_service.list_documents()
+            d.extracted_text for d in document_service.list_documents(owner=user)
             if d.id != doc.id and d.extracted_text
         ]
         comparison_corpus = other_docs if len(other_docs) >= 3 else None
@@ -50,31 +60,28 @@ async def upload_document(file: UploadFile = File(...)):
 
 
 @router.get("/")
-def list_documents():
-    docs = document_service.list_documents()
+def list_documents(user: str = Depends(current_user)):
+    docs = document_service.list_documents(owner=user)
     return {"count": len(docs), "documents": [d.to_dict() for d in docs]}
 
 
 @router.get("/search")
-def search_documents(q: str, top_k: int = 4):
-    return {"query": q, "results": vector_store.search(q, top_k=top_k)}
-
-
-@router.delete("/{doc_id}")
-def delete_document(doc_id: str):
-    if not document_service.delete_document(doc_id):
-        raise HTTPException(status_code=404, detail="Document not found")
-    return {"deleted": doc_id}
+def search_documents(q: str, top_k: int = 4, user: str = Depends(current_user)):
+    return {"query": q, "results": vector_store.search(q, top_k=top_k, owner=user)}
 
 
 @router.get("/stats/summary")
-def document_stats():
-    return get_document_stats()
+def document_stats(user: str = Depends(current_user)):
+    return get_document_stats(owner=user)
 
 
 @router.get("/{doc_id}")
-def get_document(doc_id: str):
-    doc = document_service.get_document(doc_id)
-    if doc is None:
-        raise HTTPException(status_code=404, detail="Document not found")
-    return doc.to_dict()
+def get_document(doc_id: str, user: str = Depends(current_user)):
+    return _owned(doc_id, user).to_dict()
+
+
+@router.delete("/{doc_id}")
+def delete_document(doc_id: str, user: str = Depends(current_user)):
+    _owned(doc_id, user)
+    document_service.delete_document(doc_id)
+    return {"deleted": doc_id}

@@ -4,24 +4,24 @@ from app.services import vector_store
 from app.services.stats_service import get_document_stats
 
 
-def search_documents(query: str) -> dict:
-    hits = vector_store.search(query, top_k=3)
+def search_documents(query: str, owner: str | None = None) -> dict:
+    hits = vector_store.search(query, top_k=3, owner=owner)
     return {"hits": hits}
 
 
-def list_documents() -> dict:
-    docs = document_service.list_documents()
+def list_documents(owner: str | None = None) -> dict:
+    docs = document_service.list_documents(owner=owner)
     return {"documents": [{"id": d.id, "filename": d.filename, "category": d.category} for d in docs]}
 
 
-def document_stats() -> dict:
-    return get_document_stats()
+def document_stats(owner: str | None = None) -> dict:
+    return get_document_stats(owner=owner)
 
 
-def find_document(name_hint: str):
+def find_document(name_hint: str, owner: str | None = None):
     # match a filename mentioned in the user's message
     hint = name_hint.lower()
-    for d in document_service.list_documents():
+    for d in document_service.list_documents(owner=owner):
         if d.filename.lower() in hint or d.filename.lower().rsplit(".", 1)[0] in hint:
             return d
     return None

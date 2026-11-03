@@ -20,6 +20,7 @@ ROUTER_PROMPT = (
 
 class AgentState(TypedDict, total=False):
     message: str
+    owner: str
     tool: str
     target_id: str
     target_name: str
@@ -61,13 +62,13 @@ def pick_branch(state: AgentState) -> str:
 
 
 def search_node(state: AgentState) -> AgentState:
-    result = rag_service.answer(state["message"])
+    result = rag_service.answer(state["message"], owner=state.get("owner"))
     return {"answer": result["answer"], "sources": result["sources"],
             "steps": state["steps"] + ["search_documents"]}
 
 
 def list_node(state: AgentState) -> AgentState:
-    docs = tools.list_documents()["documents"]
+    docs = tools.list_documents(state.get("owner"))["documents"]
     if not docs:
         text = "There are no documents uploaded yet."
     else:
@@ -76,7 +77,7 @@ def list_node(state: AgentState) -> AgentState:
 
 
 def stats_node(state: AgentState) -> AgentState:
-    s = tools.document_stats()
+    s = tools.document_stats(state.get("owner"))
     return {"answer": f"{s.get('total_documents', 0)} documents. Details: {json.dumps(s)}",
             "steps": state["steps"] + ["document_stats"]}
 
@@ -86,7 +87,7 @@ def chat_node(state: AgentState) -> AgentState:
 
 
 def delete_prepare_node(state: AgentState) -> AgentState:
-    doc = tools.find_document(state["message"])
+    doc = tools.find_document(state["message"], state.get("owner"))
     if doc is None:
         return {"target_id": "", "answer": "I couldn't tell which document you want deleted. "
                 "Mention the filename.", "steps": state["steps"] + ["delete: no match"]}
@@ -156,15 +157,15 @@ class AgentService:
         return {"status": "done", "thread_id": thread_id, "answer": result.get("answer"),
                 "sources": result.get("sources", []), "steps": result.get("steps", [])}
 
-    def run(self, message: str, thread_id: str | None = None) -> dict:
-        # a fresh thread per message, state doesn't carry between runs
+    def run(self, message: str, owner: str, thread_id: str | None = None) -> dict:
+        # threads are namespaced by user so one account can't approve another's action
         thread_id = thread_id or str(uuid.uuid4())
-        cfg = {"configurable": {"thread_id": thread_id}}
-        result = self.graph.invoke({"message": message, "steps": []}, cfg)
+        cfg = {"configurable": {"thread_id": f"{owner}:{thread_id}"}}
+        result = self.graph.invoke({"message": message, "owner": owner, "steps": []}, cfg)
         return self._format(thread_id, result)
 
-    def resume(self, thread_id: str, approved: bool) -> dict:
-        cfg = {"configurable": {"thread_id": thread_id}}
+    def resume(self, thread_id: str, approved: bool, owner: str) -> dict:
+        cfg = {"configurable": {"thread_id": f"{owner}:{thread_id}"}}
         state = self.graph.get_state(cfg)
         if not state.next:
             raise ValueError("nothing is waiting for approval on this thread")

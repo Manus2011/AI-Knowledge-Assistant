@@ -2,9 +2,9 @@ import pandas as pd
 from app.services.document_service import document_service
 
 
-def get_document_stats() -> dict:
+def get_document_stats(owner: str | None = None) -> dict:
     # pandas practice from day 5, pulling basic stats off the registry
-    docs = document_service.list_documents()
+    docs = document_service.list_documents(owner=owner)
 
     if not docs:
         return {"total_documents": 0}
