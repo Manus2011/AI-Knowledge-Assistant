@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 
 from app.services import conversation_service as conv
 from app.services.llm_service import llm_service
+from app.services import rag_service
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -26,6 +27,18 @@ def chat(req: ChatRequest):
         "reply": reply,
         "provider": llm_service.provider.name,
     }
+
+
+@router.post("/documents")
+def chat_with_documents(req: ChatRequest):
+    # same as /chat but answers are grounded in retrieved chunks, with sources
+    conversation_id = req.conversation_id or conv.new_conversation_id()
+    history = conv.get_history(conversation_id)
+    result = rag_service.answer(req.message, history=history)
+    conv.add_message(conversation_id, "user", req.message)
+    conv.add_message(conversation_id, "assistant", result["answer"])
+    return {"conversation_id": conversation_id, "reply": result["answer"],
+            "sources": result["sources"], "provider": llm_service.provider.name}
 
 
 @router.get("/{conversation_id}")

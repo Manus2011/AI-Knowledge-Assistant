@@ -5,6 +5,7 @@ from app.services.parser_service import parse_document, ParsingError
 from app.services.stats_service import get_document_stats
 from app.services.categorization_service import categorization_service
 from app.services.keyword_service import extract_keywords
+from app.services import vector_store
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
@@ -37,6 +38,7 @@ async def upload_document(file: UploadFile = File(...)):
         doc.keywords = extract_keywords(text, comparison_corpus=comparison_corpus)
 
         document_service.update_document(doc)
+        n_chunks = vector_store.index_document(doc.id, text)
     except ParsingError as e:
         # keep the upload but flag the parse failure
         return {
@@ -44,13 +46,25 @@ async def upload_document(file: UploadFile = File(...)):
             "warning": f"File uploaded but couldn't be parsed: {str(e)}",
         }
 
-    return {"document": doc.to_dict(), "preview": text[:300]}
+    return {"document": doc.to_dict(), "preview": text[:300], "chunks_indexed": n_chunks}
 
 
 @router.get("/")
 def list_documents():
     docs = document_service.list_documents()
     return {"count": len(docs), "documents": [d.to_dict() for d in docs]}
+
+
+@router.get("/search")
+def search_documents(q: str, top_k: int = 4):
+    return {"query": q, "results": vector_store.search(q, top_k=top_k)}
+
+
+@router.delete("/{doc_id}")
+def delete_document(doc_id: str):
+    if not document_service.delete_document(doc_id):
+        raise HTTPException(status_code=404, detail="Document not found")
+    return {"deleted": doc_id}
 
 
 @router.get("/stats/summary")
