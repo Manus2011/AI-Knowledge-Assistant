@@ -16,6 +16,7 @@ class Document:
     extracted_text: str | None = None
     category: str | None = None
     keywords: list[str] = field(default_factory=list)
+    owner: str | None = None
 
     def to_dict(self) -> dict:
         return {
