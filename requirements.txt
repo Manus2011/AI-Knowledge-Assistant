@@ -10,3 +10,5 @@ numpy
 pyjwt
 httpx
 pytest
+anthropic
+langgraph
