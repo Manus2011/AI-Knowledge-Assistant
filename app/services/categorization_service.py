@@ -2,7 +2,10 @@
 # same idea as the spam classifier exercise just applied for real here
 
 from sklearn.feature_extraction.text import TfidfVectorizer
+import os
 from sklearn.linear_model import LogisticRegression
+from sklearn.neural_network import MLPClassifier
+from app.services.training_data import generate
 
 # small training set, would add more real examples over time
 TRAINING_DATA = [
@@ -22,14 +25,20 @@ TRAINING_DATA = [
 
 
 class CategorizationService:
-    def __init__(self):
-        texts = [t for t, _ in TRAINING_DATA]
-        labels = [l for _, l in TRAINING_DATA]
+    def __init__(self, backend: str | None = None):
+        # backend is "logreg" (default) or "mlp" (small neural net, week 4)
+        self.backend = backend or os.environ.get("CATEGORIZER", "logreg")
+        data = TRAINING_DATA + generate(40, seed=7)
+        texts = [t for t, _ in data]
+        labels = [l for _, l in data]
 
         self.vectorizer = TfidfVectorizer(stop_words="english")
         X = self.vectorizer.fit_transform(texts)
 
-        self.model = LogisticRegression(max_iter=1000)
+        if self.backend == "mlp":
+            self.model = MLPClassifier(hidden_layer_sizes=(64,), max_iter=300, random_state=0)
+        else:
+            self.model = LogisticRegression(max_iter=1000)
         self.model.fit(X, labels)
 
     def categorize(self, text: str) -> str:
