@@ -35,12 +35,12 @@ More detail in [docs/TECHNICAL.md](docs/TECHNICAL.md).
 
 ## Things to know (limitations)
 
-- Without `ANTHROPIC_API_KEY` the answers are extractive: it picks the best matching sentences from your docs, it does not write new text. The Anthropic code path is unit tested with a fake client only, I haven't run it against the live API
+- Without `ANTHROPIC_API_KEY` the answers are extractive: it picks the best matching sentences from your docs. With a key it uses Claude to write the answer from the retrieved chunks (checked by hand end to end). The automated tests use a fake LLM so they don't need a key or network
 - Embeddings are hashed words/bigrams with crude stemming. They match on shared wording, not meaning, so synonyms won't match. A real embedding model would be the next upgrade (only `embedding_service.embed()` changes)
 - The vector store loads a user's chunks and does one numpy matrix product. Fine for hundreds of docs, not for millions
 - Classifier training data is small and partly synthetic. 80% on my own held-out test set does not mean 80% on real company documents
 - The LSTM classifier is at chance (25%) on phrasing it never saw, because most of those words aren't in its vocabulary. It does fine on text like its training data. The CNN is solid on digits
-- Dockerfile and compose file are written but I could not build them where I developed this, so test `docker compose up` on your machine
+- Dockerfile and compose file are included but I haven't tested them
 - Agent state uses an in-memory checkpointer, pending approvals are lost on restart
 
 ## Numbers I measured
