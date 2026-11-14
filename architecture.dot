@@ -1,0 +1,31 @@
+digraph G {
+  rankdir=LR; fontname="Helvetica"; node [shape=box, style="rounded,filled", fillcolor="#f4f6fa", color="#4a5568", fontname="Helvetica"]; edge [color="#4a5568", fontname="Helvetica", fontsize=10];
+  client [label="Client\n(Swagger UI / curl)", fillcolor="#e2e8f0"];
+  subgraph cluster_api { label="FastAPI app"; style=dashed; color="#a0aec0";
+    mw [label="Middleware\nrequest id + logging\nerror handler"];
+    auth [label="JWT auth\n(/auth)"];
+    docs [label="/documents\nupload, search, stats"];
+    chat [label="/chat\n/chat/documents\n/chain/ask (LangChain)"];
+    agent [label="/agent\nLangGraph graph"];
+  }
+  subgraph cluster_svc { label="Services"; style=dashed; color="#a0aec0";
+    parser [label="parser\n(txt, pdf)"];
+    cat [label="categorizer\nTF-IDF + LogReg / MLP\nor LSTM (torch)"];
+    kw [label="keyword\nextraction"];
+    chunk [label="chunking +\nhashed embeddings"];
+    vs [label="vector store\n(numpy cosine)"];
+    rag [label="RAG service"];
+    llm [label="LLM service"];
+  }
+  db [label="SQLite\nusers, documents,\nchunks, messages", shape=cylinder, fillcolor="#fefcbf"];
+  files [label="Uploaded files\n(data/)", shape=folder, fillcolor="#fefcbf"];
+  anth [label="Anthropic API\n(optional)", fillcolor="#c6f6d5"];
+  ext [label="Extractive fallback\n(no API key)", fillcolor="#c6f6d5"];
+  client -> mw -> auth; mw -> docs; mw -> chat; mw -> agent;
+  docs -> parser -> cat -> kw -> chunk -> vs;
+  docs -> files;
+  vs -> db; auth -> db; chat -> db [label="history"];
+  chat -> rag; agent -> rag; agent -> docs [label="tools"];
+  rag -> vs [label="top-k"]; rag -> llm;
+  llm -> anth; llm -> ext;
+}
