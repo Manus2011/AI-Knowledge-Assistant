@@ -26,7 +26,7 @@ JWT_SECRET=some-long-random-string uvicorn app.main:app --host 0.0.0.0 --port 80
 | JWT_EXPIRE_MINUTES | 60 | token lifetime |
 | ANTHROPIC_API_KEY | empty | enables real LLM answers, otherwise extractive |
 | LLM_MODEL | claude-sonnet-4-5 | model name |
-| CATEGORIZER | logreg | logreg or mlp |
+| CATEGORIZER | logreg | logreg, mlp or lstm (lstm needs torch, see requirements-dl.txt) |
 | DATA_DIR / DB_PATH | ./data | where files and sqlite db go |
 | CHUNK_SIZE / CHUNK_OVERLAP / TOP_K | 500 / 80 / 4 | retrieval settings |
 

@@ -26,11 +26,21 @@ TRAINING_DATA = [
 
 class CategorizationService:
     def __init__(self, backend: str | None = None):
-        # backend is "logreg" (default) or "mlp" (small neural net, week 4)
+        # backend is "logreg" (default), "mlp" (sklearn neural net) or "lstm" (pytorch, week 4)
         self.backend = backend or os.environ.get("CATEGORIZER", "logreg")
         data = TRAINING_DATA + generate(40, seed=7)
         texts = [t for t, _ in data]
         labels = [l for _, l in data]
+
+        self.neural = None
+        if self.backend == "lstm":
+            try:
+                from app.services.neural_categorizer import NeuralCategorizer
+                self.neural = NeuralCategorizer().fit(data)
+                return
+            except ImportError:
+                # torch not installed, use the sklearn model instead
+                self.backend = "logreg"
 
         self.vectorizer = TfidfVectorizer(stop_words="english")
         X = self.vectorizer.fit_transform(texts)
@@ -44,6 +54,11 @@ class CategorizationService:
     def categorize(self, text: str) -> str:
         if not text or not text.strip():
             return "other"
+
+        if self.neural is not None:
+            probs = self.neural.predict_proba(text)
+            best = max(probs, key=probs.get)
+            return best if probs[best] >= 0.35 else "other"
 
         X = self.vectorizer.transform([text])
         prediction = self.model.predict(X)[0]

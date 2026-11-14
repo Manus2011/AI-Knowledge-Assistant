@@ -24,6 +24,14 @@ The router asks the model for JSON when an API key exists, otherwise uses regex 
 `delete` finds the document by filename, then the `approve` node calls `interrupt()`,
 which pauses the run. `POST /agent/approve` resumes it with true/false. Threads are namespaced per user.
 
+## LangChain chain (`POST /chain/ask`)
+
+`ChatPromptTemplate | RunnableLambda(llm) | StrOutputParser`, wrapped in `RunnableWithMessageHistory` with a sqlite backed history class, so the memory is the same `messages` table the other chat routes use.
+
+## Deep learning (week 4)
+
+`neural_categorizer.py` is an LSTM (embedding, LSTM, linear) trained at startup when `CATEGORIZER=lstm`. If torch isn't installed the app falls back to the sklearn model. `exercises/week4_dl/` has the CNN, the numpy network and the text classifier comparisons.
+
 ## Data model (sqlite)
 
 - `users(username, password_hash, salt)`: pbkdf2-sha256, 200k iterations, per-user salt
@@ -40,7 +48,7 @@ which pauses the run. `POST /agent/approve` resumes it with true/false. Threads 
 
 ## Testing
 
-`python -m pytest`: 48 tests covering upload, persistence, categorizer backends, chat memory, chunking,
+`python -m pytest`: 53 tests covering upload, persistence, categorizer backends, chat memory, chunking,
 retrieval, RAG, agent routing and approval flow, auth, user isolation, error handler.
 The Anthropic provider is tested with a fake client, no network calls.
 

@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 import numpy as np
 from app.core.db import get_conn
 from app.services import embedding_service as emb
@@ -19,6 +21,12 @@ def index_document(doc_id: str, text: str) -> int:
     return len(chunks)
 
 
+@lru_cache(maxsize=256)
+def _embed_query(query: str):
+    # repeated questions (and the agent re-asking) skip the vectorizer
+    return emb.embed([query])[0]
+
+
 def search(query: str, top_k: int = 4, owner: str | None = None, min_score: float = 0.08) -> list[dict]:
     conn = get_conn()
     sql = ("SELECT c.doc_id, c.idx, c.text, c.embedding, d.filename FROM chunks c "
@@ -33,7 +41,7 @@ def search(query: str, top_k: int = 4, owner: str | None = None, min_score: floa
         return []
 
     matrix = np.stack([emb.from_blob(r["embedding"]) for r in rows])
-    q = emb.embed([query])[0]
+    q = _embed_query(query)
     # both sides are l2 normalized so the dot product is cosine similarity
     scores = matrix @ q
     order = np.argsort(-scores)[:top_k]

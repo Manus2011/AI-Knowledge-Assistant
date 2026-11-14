@@ -3,11 +3,12 @@ import time
 import uuid
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 
 from app.core import config
 from app.core.db import init_db
-from app.routes import documents, chat, agent, auth
+from app.routes import documents, chat, agent, auth, chain
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 log = logging.getLogger("app")
@@ -38,6 +39,10 @@ app = FastAPI(
 )
 
 
+# compress bigger json responses (search results, document lists)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+
 @app.on_event("startup")
 def startup():
     init_db()
@@ -53,6 +58,7 @@ async def log_requests(request: Request, call_next):
     ms = (time.perf_counter() - start) * 1000
     log.info("%s %s %s -> %s %.1fms", request_id, request.method, request.url.path, response.status_code, ms)
     response.headers["X-Request-ID"] = request_id
+    response.headers["X-Process-Time-Ms"] = f"{ms:.1f}"
     return response
 
 
@@ -67,6 +73,7 @@ app.include_router(auth.router)
 app.include_router(documents.router)
 app.include_router(chat.router)
 app.include_router(agent.router)
+app.include_router(chain.router)
 
 
 @app.get("/", tags=["meta"])

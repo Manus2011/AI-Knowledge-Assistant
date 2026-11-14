@@ -64,3 +64,15 @@ def test_delete_unknown_file(client):
 def test_approve_without_pending_run(client):
     r = client.post("/agent/run", json={"message": "list my documents"}).json()
     assert client.post("/agent/approve", json={"thread_id": r["thread_id"], "approved": True}).status_code == 409
+
+
+def test_langchain_chain_with_memory(client):
+    llm_service.set_provider(None)
+    upload(client, "chain_doc.txt", "Contractors must submit invoices by the 5th of every month. Late invoices roll into the next cycle.")
+    r1 = client.post("/chain/ask", json={"message": "when must contractors submit invoices?"}).json()
+    assert "5th" in r1["reply"] and r1["sources"]
+    r2 = client.post("/chain/ask", json={"message": "what happens to late invoices?",
+                                         "conversation_id": r1["conversation_id"]}).json()
+    assert "next cycle" in r2["reply"]
+    hist = client.get(f"/chat/{r1['conversation_id']}").json()["messages"]
+    assert len(hist) == 4  # both turns saved through the chain's history

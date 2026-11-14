@@ -1,0 +1,2 @@
+# optional, only for the cnn/lstm parts (week 4). the app runs without it.
+torch

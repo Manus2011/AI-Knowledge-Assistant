@@ -12,3 +12,4 @@ httpx
 pytest
 anthropic
 langgraph
+langchain-core
